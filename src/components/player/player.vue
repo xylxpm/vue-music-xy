@@ -28,6 +28,13 @@
           </div>
         </div>
         <div class="bottom">
+          <div class="progress-wrapper">
+            <span class="time time-l">{{format(currentTime)}}</span>
+            <div class="progress-bar-wrapper">
+              <progress-bar></progress-bar>
+            </div>
+            <span class="time time-r">{{format(currentSong.duration)}}</span>
+          </div>
           <div class="operators">
             <div class="icon i-left">
               <i class="icon-sequence"></i>
@@ -68,7 +75,7 @@
         </div>
       </div>
     </transition>
-    <audio :src="currentSong.url" ref="audio" @canplay="ready" @error="error"></audio>
+    <audio :src="currentSong.url" ref="audio" @canplay="ready" @error="error" @timeupdate="timeupdate"></audio>
   </div>
 </template>
 
@@ -76,13 +83,15 @@
   import {mapGetters, mapMutations} from 'vuex'
   import animations from 'create-keyframe-animation'
   import {prefixStyle} from 'common/js/dom'
+  import ProgressBar from 'base/progress-bar/progress-bar'
 
   const transform = prefixStyle('transform')
 
   export default {
     data() {
       return {
-        songReady: false
+        songReady: false,
+        currentTime: 0
       }
     },
     computed: {
@@ -107,6 +116,23 @@
       ])
     },
     methods: {
+      format(interval) {
+        interval = interval | 0
+        const minute = interval / 60 | 0
+        const seconde = this._pad(interval % 60)
+        return `${minute}:${seconde}`
+      },
+      _pad(num, n = 2) {
+        let len = num.toString().length
+        while (len < n) {
+          num = '0' + num
+          len++
+        }
+        return num
+      },
+      timeupdate(e) {
+        this.currentTime = e.target.currentTime
+      },
       ready() {
         this.songReady = true
       },
@@ -221,6 +247,9 @@
           newPlaying ? audio.play() : audio.pause()
         })
       }
+    },
+    components: {
+      ProgressBar
     }
   }
 </script>
