@@ -1,17 +1,34 @@
 <template>
-    <div class="progress-bar">
-      <div class="bar-inner">
-        <div class="progress"></div>
-        <div class="progress-btn-wrapper">
-          <div class="progress-btn"></div>
-        </div>
+  <div class="progress-bar" ref="progressBar">
+    <div class="bar-inner">
+      <div class="progress" ref="progress"></div>
+      <div class="progress-btn-wrapper" ref="progressBtn">
+        <div class="progress-btn"></div>
       </div>
     </div>
+  </div>
 </template>
 
 <script type="text/ecmascript-6">
-    export default {
+  const progressBtnWidth = 16
+
+  export default {
+    props: {
+      percent: {
+        type: Number,
+        default: 0
+      }
+    },
+    watch: {
+      percent(newPercent) {
+        if (newPercent >= 0) {
+          const barWidth = this.$refs.progressBar.clientWidth - progressBtnWidth
+          const offsetWidth = newPercent * barWidth
+          this.$refs.progress.style.width = `${offsetWidth}px`
+        }
+      }
     }
+  }
 </script>
 
 <style scoped lang="stylus" rel="stylesheet/stylus">
