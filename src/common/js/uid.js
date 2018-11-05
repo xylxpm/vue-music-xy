@@ -10,4 +10,3 @@ export function getUid() {
   }
   return _uid
 }
-
