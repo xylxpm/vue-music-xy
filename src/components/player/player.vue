@@ -18,7 +18,11 @@
           <h1 class="title" v-html="currentSong.name"></h1>
           <h2 class="subtitle" v-html="currentSong.singer"></h2>
         </div>
-        <div class="middle">
+        <div class="middle"
+             @touchstart.prevent="middleTouchStart"
+             @touchmove.prevent="middleTouchMove"
+             @touchend="middleTouchEnd"
+        >
           <div class="middle-l">
             <div class="cd-wrapper" ref="cdWrapper">
               <div class="cd" :class="cdCls">
@@ -35,6 +39,10 @@
           </scroll>
         </div>
         <div class="bottom">
+          <div class="dot-wrapper">
+            <span class="dot" :class="{'active' : currentShow === 'cd'}"></span>
+            <span class="dot" :class="{'active' : currentShow === 'lyric'}"></span>
+          </div>
           <div class="progress-wrapper">
             <span class="time time-l">{{format(currentTime)}}</span>
             <div class="progress-bar-wrapper">
@@ -102,6 +110,7 @@
   import Scroll from 'base/scroll/scroll'
 
   const transform = prefixStyle('transform')
+  const transitionDuration = prefixStyle('transitionDuration')
 
   export default {
     data() {
@@ -110,8 +119,12 @@
         currentTime: 0,
         radius: 32,
         currentLyric: null,
-        currentLineNum: 0
+        currentLineNum: 0,
+        currentShow: 'cd'
       }
+    },
+    created() {
+      this.touch = {}
     },
     computed: {
       iconMode() {
@@ -299,6 +312,48 @@
             this.currentLyric.play()
           }
         })
+      },
+      middleTouchStart(e) {
+        this.touch.initiated = true
+        const touch = e.touches[0]
+        this.touch.startX = touch.pageX
+        this.touch.startY = touch.pageY
+      },
+      middleTouchMove(e) {
+        if (!this.touch.initiated) {
+          return
+        }
+        const touch = e.touches[0]
+        const deltaX = touch.pageX - this.touch.startX
+        const deltaY = touch.pageY - this.touch.startY
+        if (Math.abs(deltaY) > Math.abs(deltaX)) {
+          return
+        }
+        const left = this.currentShow === 'cd' ? 0 : -window.innerWidth
+        const offsetwidth = Math.min(0, Math.max(-window.innerWidth, left + deltaX))
+        this.touch.percent = Math.abs(offsetwidth / window.innerWidth)
+        this.$refs.lyricList.$el.style[transform] = `translate3d(${offsetwidth}px, 0, 0)`
+      },
+      middleTouchEnd() {
+        let offsetwidth
+        if (this.currentShow === 'cd') {
+          if (this.touch.percent > 0.1) {
+            offsetwidth = -window.innerWidth
+            this.currentShow = 'lyric'
+          } else {
+            offsetwidth = 0
+          }
+        } else {
+          if (this.touch.percent < 0.9) {
+            offsetwidth = 0
+            this.currentShow = 'cd'
+          } else {
+            offsetwidth = -window.innerWidth
+          }
+        }
+        const time = 300
+        this.$refs.lyricList.$el.style[transform] = `translate3d(${offsetwidth}px, 0, 0)`
+        this.$refs.lyricList.$el.style[transitionDuration] = `${time}`
       },
       handleLyric({lineNum, txt}) {
         this.currentLineNum = lineNum
