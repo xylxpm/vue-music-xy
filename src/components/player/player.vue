@@ -23,17 +23,21 @@
              @touchmove.prevent="middleTouchMove"
              @touchend="middleTouchEnd"
         >
-          <div class="middle-l">
+          <div class="middle-l" ref="middlel">
             <div class="cd-wrapper" ref="cdWrapper">
               <div class="cd" :class="cdCls">
                 <img class="image" :src="currentSong.image"/>
               </div>
             </div>
+            <div class="playing-lyric-wrapper">
+              <div class="playing-lyric">{{playingLyric}}</div>
+            </div>
           </div>
           <scroll class="middle-r" ref="lyricList" :data="currentLyric && currentLyric.lines">
             <div class="lyric-wrapper">
               <div v-if="currentLyric">
-                <p :class="{'current' : currentLineNum === index}" ref="lyricLine" class="text" v-for="(line, index) in currentLyric.lines">{{line.txt}}</p>
+                <p :class="{'current' : currentLineNum === index}" ref="lyricLine" class="text"
+                   v-for="(line, index) in currentLyric.lines">{{line.txt}}</p>
               </div>
             </div>
           </scroll>
@@ -52,7 +56,7 @@
           </div>
           <div class="operators">
             <div class="icon i-left" @click="changeMode">
-              <i  :class="iconMode"></i>
+              <i :class="iconMode"></i>
             </div>
             <div class="icon i-left" :class="disableCls">
               <i @click="prev" class="icon-prev"></i>
@@ -120,7 +124,8 @@
         radius: 32,
         currentLyric: null,
         currentLineNum: 0,
-        currentShow: 'cd'
+        currentShow: 'cd',
+        playingLyric: null
       }
     },
     created() {
@@ -166,6 +171,9 @@
       loop() {
         this.$refs.audio.currentTime = 0
         this.$refs.audio.play()
+        if (this.currentLyric) {
+          this.currentLyric.seek(0)
+        }
       },
       changeMode() {
         const mode = (this.mode + 1) % 3
@@ -187,9 +195,13 @@
         this.setCurrentIndex(index)
       },
       onProgressBarChange(percent) {
-        this.$refs.audio.currentTime = this.currentSong.duration * percent
+        const _ct = this.currentSong.duration * percent
+        this.$refs.audio.currentTime = _ct
         if (!this.playing) {
           this.togglePlaying()
+        }
+        if (this.currentLyric) {
+          this.currentLyric.seek(_ct * 1000)
         }
       },
       format(interval) {
@@ -219,13 +231,17 @@
         if (!this.songReady) {
           return
         }
-        let index = this.currentIndex - 1
-        if (index === -1) {
-          index = this.playList.length - 1
-        }
-        this.setCurrentIndex(index)
-        if (!this.playing) {
-          this.togglePlaying()
+        if (this.playList.length === 1) {
+          this.loop()
+        } else {
+          let index = this.currentIndex - 1
+          if (index === -1) {
+            index = this.playList.length - 1
+          }
+          this.setCurrentIndex(index)
+          if (!this.playing) {
+            this.togglePlaying()
+          }
         }
         this.songReady = false
       },
@@ -233,13 +249,17 @@
         if (!this.songReady) {
           return
         }
-        let index = this.currentIndex + 1
-        if (index === this.playList.length) {
-          index = 0
-        }
-        this.setCurrentIndex(index)
-        if (!this.playing) {
-          this.togglePlaying()
+        if (this.playList.length === 1) {
+          this.loop()
+        } else {
+          let index = this.currentIndex + 1
+          if (index === this.playList.length) {
+            index = 0
+          }
+          this.setCurrentIndex(index)
+          if (!this.playing) {
+            this.togglePlaying()
+          }
         }
         this.songReady = false
       },
@@ -290,7 +310,13 @@
         this.$refs.cdWrapper.style[transform] = ''
       },
       togglePlaying() {
+        if (!this.songReady) {
+          return
+        }
         this.setPlayingState(!this.playing)
+        if (this.currentLyric) {
+          this.currentLyric.togglePlay()
+        }
       },
       _getPosAndSclae() {
         const targetWidth = 40
@@ -311,6 +337,10 @@
           if (this.playing) {
             this.currentLyric.play()
           }
+        }).catch(() => {
+          this.currentLyric = null
+          this.playingLyric = ''
+          this.currentLineNum = 0
         })
       },
       middleTouchStart(e) {
@@ -333,27 +363,37 @@
         const offsetwidth = Math.min(0, Math.max(-window.innerWidth, left + deltaX))
         this.touch.percent = Math.abs(offsetwidth / window.innerWidth)
         this.$refs.lyricList.$el.style[transform] = `translate3d(${offsetwidth}px, 0, 0)`
+        this.$refs.lyricList.$el.style[transitionDuration] = 0
+        this.$refs.middlel.style.opacity = 1 - this.touch.percent
+        this.$refs.middlel.style[transitionDuration] = 0
       },
       middleTouchEnd() {
         let offsetwidth
+        let opacity
         if (this.currentShow === 'cd') {
           if (this.touch.percent > 0.1) {
             offsetwidth = -window.innerWidth
+            opacity = 0
             this.currentShow = 'lyric'
           } else {
             offsetwidth = 0
+            opacity = 1
           }
         } else {
           if (this.touch.percent < 0.9) {
             offsetwidth = 0
             this.currentShow = 'cd'
+            opacity = 1
           } else {
             offsetwidth = -window.innerWidth
+            opacity = 0
           }
         }
         const time = 300
         this.$refs.lyricList.$el.style[transform] = `translate3d(${offsetwidth}px, 0, 0)`
-        this.$refs.lyricList.$el.style[transitionDuration] = `${time}`
+        this.$refs.lyricList.$el.style[transitionDuration] = `${time}ms`
+        this.$refs.middlel.style.opacity = opacity
+        this.$refs.middlel.style[transitionDuration] = `${time}ms`
       },
       handleLyric({lineNum, txt}) {
         this.currentLineNum = lineNum
@@ -363,6 +403,7 @@
         } else {
           this.$refs.lyricList.scrollTo(0, 0, 1000)
         }
+        this.playingLyric = txt
       },
       ...mapMutations({
         setFullScreen: 'SET_FULL_SCREEN',
@@ -374,13 +415,16 @@
     },
     watch: {
       currentSong(newSong, oldSong) {
-        if (newSong.id === oldSong.id){
+        if (newSong.id === oldSong.id) {
           return
         }
-        this.$nextTick(() => {
+        if (this.currentLyric) {
+          this.currentLyric.stop()
+        }
+        setTimeout(() => {
           this.$refs.audio.play()
           this.getLyric()
-        })
+        }, 1000)
       },
       playing(newPlaying) {
         const audio = this.$refs.audio
