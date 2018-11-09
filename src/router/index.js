@@ -13,6 +13,7 @@ const Recommend = (resolve) => {
     resolve(rank)
   })
 }
+
 const Search = (resolve) => {
   import('components/search/search').then((search) => {
     resolve(search)
