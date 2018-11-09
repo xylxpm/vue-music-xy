@@ -62,8 +62,8 @@
         this.$router.push({
           path: `/recommend/${item.dissid}`
         })
-        console.log(item.dissid)
         this.setDisc(item)
+        // console.log(item)
       },
       handlePlayList(playList) {
         const bottom = playList.length > 0 ? '60px' : ''
