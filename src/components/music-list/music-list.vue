@@ -17,7 +17,7 @@
     <scroll :data="songs" @scroll="scroll"
             :listen-scroll="listenScroll" :probe-type="probeType" class="list" ref="list">
       <div class="song-list-wrapper">
-        <song-list @select="selectItem" :songs="songs"></song-list>
+        <song-list :rank="rank" @select="selectItem" :songs="songs"></song-list>
       </div>
       <div class="loading-container" v-show="!songs.length">
         <loading></loading>
@@ -29,7 +29,7 @@
 <script type="text/ecmascript-6">
   import Scroll from 'base/scroll/scroll'
   import SongList from 'base/song-list/song-list'
-  import {prefixStyle} from '../../common/js/dom'
+  import {prefixStyle} from 'common/js/dom'
   import Loading from 'base/loading/loading'
   import {mapActions} from 'vuex'
   import {playListMixin} from 'common/js/mixin'
@@ -57,6 +57,10 @@
       title: {
         type: String,
         default: ''
+      },
+      rank: {
+        type: Boolean,
+        default: false
       }
     },
     created() {

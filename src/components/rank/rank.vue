@@ -1,25 +1,25 @@
 <template>
-    <div class="rank" ref="rank">
-      <scroll class="toplist" :data="topList" ref="toplist">
-        <ul>
-          <li class="item" v-for="item in topList">
-            <div class="icon">
-              <img width="100" height="100" v-lazy="item.picUrl"/>
-            </div>
-            <ul class="songlist">
-              <li class="song"  v-for="(song, index) in item.songList">
-                <span>{{index+1}}</span>
-                <span>{{song.songname}}--{{song.singername}}</span>
-              </li>
-            </ul>
-          </li>
-        </ul>
-        <div class="loading-container" v-show="!topList.length">
-          <loading></loading>
-        </div>
-      </scroll>
-      <router-view></router-view>
-    </div>
+  <div class="rank" ref="rank">
+    <scroll class="toplist" :data="topList" ref="toplist">
+      <ul>
+        <li class="item" v-for="item in topList" @click="selectItem(item)">
+          <div class="icon">
+            <img width="100" height="100" v-lazy="item.picUrl"/>
+          </div>
+          <ul class="songlist">
+            <li class="song" v-for="(song, index) in item.songList">
+              <span>{{index+1}}</span>
+              <span>{{song.songname}}--{{song.singername}}</span>
+            </li>
+          </ul>
+        </li>
+      </ul>
+      <div class="loading-container" v-show="!topList.length">
+        <loading></loading>
+      </div>
+    </scroll>
+    <router-view></router-view>
+  </div>
 </template>
 
 <script type="text/ecmascript-6">
@@ -28,6 +28,7 @@
   import {ERR_OK} from 'api/config'
   import Scroll from 'base/scroll/scroll'
   import {playListMixin} from 'common/js/mixin'
+  import {mapMutations} from 'vuex'
 
   export default {
     mixins: [playListMixin],
@@ -44,6 +45,15 @@
       this._getTopList()
     },
     methods: {
+      ...mapMutations({
+        setTopList: 'SET_TOPLIST'
+      }),
+      selectItem(item) {
+        this.$router.push({
+          path: `/rank/${item.id}`
+        })
+        this.setTopList(item)
+      },
       handlePlayList(playlist) {
         const bottom = playlist.length > 0 ? '60px' : ''
         this.$refs.rank.style.bottom = bottom
