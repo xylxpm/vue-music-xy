@@ -80,6 +80,7 @@
         } else {
           this.insertSong(item)
         }
+        this.$emit('select')
       },
       getDisplayName(item) {
         if (item.type === TYPE_SINGER) {
