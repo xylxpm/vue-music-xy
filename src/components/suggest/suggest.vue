@@ -1,12 +1,11 @@
 <template>
   <scroll class="suggest"
-          ref="suggest"
           :data="result"
           :pullup="pullup"
           @scrollToEnd="searchMore"
   >
     <ul class="suggest-list">
-      <li class="suggest-item" v-for="item in result">
+      <li @click="selectItem(item)" class="suggest-item" v-for="item in result">
         <div class="icon">
           <i :class="getIconCls(item)"></i>
         </div>
@@ -14,18 +13,19 @@
           <p class="text" v-html="getDisplayName(item)"></p>
         </div>
       </li>
-      <loading title="" v-show="hasMore"></loading>
+      <loading v-show="hasMore" title=""></loading>
     </ul>
-    <div v-show="!hasMore" class="no-result-wrapper"></div>
   </scroll>
 </template>
 
 <script type="text/ecmascript-6">
+  import Scroll from 'base/scroll/scroll'
   import {search} from 'api/search'
   import {ERR_OK} from 'api/config'
-  import { createSong, isValidMusic, processSongsUrl } from 'common/js/song'
-  import Scroll from 'base/scroll/scroll'
+  import {createSong, isValidMusic, processSongsUrl} from 'common/js/song'
   import Loading from 'base/loading/loading'
+  import Singer from 'common/js/singer'
+  import {mapMutations, mapActions} from 'vuex'
 
   const perpage = 20
   const TYPE_SINGER = 'singer'
@@ -45,8 +45,8 @@
       return {
         page: 1,
         result: [],
-        hasMore: true,
-        pullup: true
+        pullup: true,
+        hasMore: true
       }
     },
     components: {
@@ -54,23 +54,25 @@
       Loading
     },
     methods: {
-      searchMore() {
-        if (!this.hasMore) {
-          return
+      selectItem(item) {
+        if (item.type === TYPE_SINGER) {
+          const singer = new Singer({
+            id: item.singermid,
+            name: item.singername
+          })
+          this.$router.push({
+            path: `/search/${singer.id}`
+          })
+          this.setSinger(singer)
+        } else {
+          this.insertSong(item)
         }
-        this.page++
-        search(this.query, this.page, this.showSinger, perpage).then((res) => {
-          if (res.code === ERR_OK) {
-            this.result = this.result.concat(this._genResult(res.data))
-            this._checkMore(res.data)
-          }
-        })
       },
       getDisplayName(item) {
         if (item.type === TYPE_SINGER) {
           return item.singername
         } else {
-          return `${item.name}-${item.singer}`
+          return `${item.name}--${item.singer}`
         }
       },
       getIconCls(item) {
@@ -81,13 +83,12 @@
         }
       },
       search() {
-        this.hasMore = true
         this.page = 1
-        this.$refs.suggest.scrollTo(0, 0)
+        this.hasMore = true
         search(this.query, this.page, this.showSinger, perpage).then((res) => {
           if (res.code === ERR_OK) {
             this.result = this._genResult(res.data)
-            this._checkMore(res.data)
+            this._chechMore(res.data)
           }
         })
       },
@@ -103,19 +104,38 @@
       },
       _normalizeSongs(list) {
         let ret = []
-        list.forEach((music) => {
-          if (isValidMusic(music)) {
-            ret.push(createSong(music))
+        list.forEach((musicData) => {
+          if (musicData.songid && musicData.albumid) {
+            ret.push(createSong(musicData))
           }
         })
         return ret
       },
-      _checkMore(data) {
+      searchMore() {
+        console.log(this.hasMore)
+        if (!this.hasMore) {
+          return
+        }
+        this.page++
+        search(this.query, this.page, this.showSinger, perpage).then((res) => {
+          if (res.code === ERR_OK) {
+            this.result = this.result.concat(this._genResult(res.data))
+            this._chechMore(res.data)
+          }
+        })
+      },
+      _chechMore(data) {
         const song = data.song
-        if (!song.list.length || (song.curnum + song.curpage * perpage) >= song.totalnum) {
+        if (!song.list.length || (song.curnum + (song.curpage - 1) * perpage) >= song.totalnum) {
           this.hasMore = false
         }
-      }
+      },
+      ...mapMutations({
+        setSinger: 'SET_SINGER'
+      }),
+      ...mapActions([
+        'insertSong'
+      ])
     },
     watch: {
       query() {
