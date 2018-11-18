@@ -44,7 +44,7 @@
     },
     methods: {
       blurInput() {
-        this.$ref.searchBox.blur()
+        this.$ref.searchBox.blurInput()
       },
       onQueryChange(query) {
         this.query = query
