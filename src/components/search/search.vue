@@ -13,6 +13,15 @@
             </li>
           </ul>
         </div>
+        <div class="search-history" v-show="searchHistory.length">
+          <h1 class="title">
+            <span class="text">搜索历史</span>
+            <span class="clear" @click="deleteAll">
+              <i class="icon-clear"></i>
+            </span>
+          </h1>
+          <search-list :searches="searchHistory" @select="addQuery" @delete="deleteQuery"></search-list>
+        </div>
       </div>
     </div>
     <div class="search-result" v-show="query">
@@ -27,11 +36,14 @@
   import {getHotKet} from 'api/search'
   import {ERR_OK} from 'api/config'
   import Suggest from 'components/suggest/suggest'
+  import {mapActions, mapGetters} from 'vuex'
+  import SearchList from 'base/search-list/search-list'
 
   export default {
     components: {
       SearchBox,
-      Suggest
+      Suggest,
+      SearchList
     },
     data() {
       return {
@@ -42,18 +54,29 @@
     created() {
       this._getHotKet()
     },
+    computed: {
+      ...mapGetters([
+        'searchHistory'
+      ])
+    },
     methods: {
       saveSearch() {
-
+        this.saveSearchHistory(this.query)
       },
       blurInput() {
-        this.$ref.searchBox.blurInput()
+        this.$refs.searchBox.blur()
       },
       onQueryChange(query) {
         this.query = query
       },
+      deleteQuery(item) {
+        this.deleteSearchHistory(item)
+      },
       addQuery(query) {
         this.$refs.searchBox.setQuery(query)
+      },
+      deleteAll() {
+        this.clearSearchHistory()
       },
       _getHotKet() {
         getHotKet().then((res) => {
@@ -61,7 +84,12 @@
             this.hotKey = res.data.hotkey.slice(0, 10)
           }
         })
-      }
+      },
+      ...mapActions([
+        'saveSearchHistory',
+        'deleteSearchHistory',
+        'clearSearchHistory'
+      ])
     }
   }
 </script>

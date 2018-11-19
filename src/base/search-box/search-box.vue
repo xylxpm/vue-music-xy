@@ -1,35 +1,34 @@
 <template>
   <div class="search-box">
     <i class="icon-search"></i>
-    <input ref="queryInput" class="box" :placeholder="placeholder" v-model="query"/>
-    <i class="icon-dismiss" v-show="query" @click="clear"></i>
+    <input ref="query" v-model="query" class="box" :placeholder="placeholder"/>
+    <i @click="clear" v-show="query" class="icon-dismiss"></i>
   </div>
 </template>
 
 <script type="text/ecmascript-6">
   import {debounce} from 'common/js/util'
-
   export default {
-    data() {
-      return {
-        query: ''
-      }
-    },
     props: {
       placeholder: {
         type: String,
         default: '搜索歌曲、歌手'
       }
     },
+    data() {
+      return {
+        query: ''
+      }
+    },
     methods: {
-      blurInput() {
-        this.$refs.queryInput.blur()
-      },
       clear() {
         this.query = ''
       },
       setQuery(query) {
         this.query = query
+      },
+      blur() {
+        this.$refs.query.blur()
       }
     },
     created() {
@@ -42,7 +41,6 @@
 
 <style scoped lang="stylus" rel="stylesheet/stylus">
   @import "~common/stylus/variable"
-
   .search-box
     display: flex
     align-items: center
@@ -68,6 +66,4 @@
     .icon-dismiss
       font-size: 16px
       color: $color-background
-
-
 </style>
