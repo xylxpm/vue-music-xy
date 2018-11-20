@@ -64,6 +64,9 @@
       NoResult
     },
     methods: {
+      refresh() {
+        this.$refs.suggest.refresh()
+      },
       listScroll() {
         this.$emit('listScroll')
       },
