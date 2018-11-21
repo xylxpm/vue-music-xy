@@ -91,11 +91,13 @@
             <i :class="playIconMini" class="icon-mini" @click.stop="togglePlaying"></i>
           </progress-circle>
         </div>
-        <div class="control">
+        <div class="control" @click.stop="showPlaylist">
           <i class="icon-playlist"></i>
         </div>
       </div>
     </transition>
+    <play-list ref="playlist"></play-list>
+
     <audio :src="currentSong.url" ref="audio"
            @play="ready" @error="error"
            @timeupdate="timeupdate" @ended="ended"></audio>
@@ -112,6 +114,7 @@
   import {shuffle} from 'common/js/util'
   import Lyric from 'lyric-parser'
   import Scroll from 'base/scroll/scroll'
+  import PlayList from 'components/playlist/playlist'
 
   const transform = prefixStyle('transform')
   const transitionDuration = prefixStyle('transitionDuration')
@@ -161,6 +164,9 @@
       ])
     },
     methods: {
+      showPlaylist() {
+        this.$refs.playlist.show()
+      },
       ended() {
         if (this.mode === playMode.loop) {
           this.loop()
@@ -448,7 +454,8 @@
     components: {
       ProgressBar,
       ProgressCircle,
-      Scroll
+      Scroll,
+      PlayList
     }
   }
 </script>
