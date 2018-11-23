@@ -105,7 +105,7 @@
 </template>
 
 <script type="text/ecmascript-6">
-  import {mapGetters, mapMutations} from 'vuex'
+  import {mapGetters, mapMutations, mapActions} from 'vuex'
   import animations from 'create-keyframe-animation'
   import {prefixStyle} from 'common/js/dom'
   import ProgressBar from 'base/progress-bar/progress-bar'
@@ -114,6 +114,7 @@
   import Scroll from 'base/scroll/scroll'
   import PlayList from 'components/playlist/playlist'
   import {playerMixin} from 'common/js/mixin'
+  import {playMode} from 'common/js/config'
 
   const transform = prefixStyle('transform')
   const transitionDuration = prefixStyle('transitionDuration')
@@ -203,6 +204,7 @@
       },
       ready() {
         this.songReady = true
+        this.savePlayHistory(this.currentSong)
       },
       error() {
         this.songReady = true
@@ -392,7 +394,10 @@
       },
       ...mapMutations({
         setFullScreen: 'SET_FULL_SCREEN'
-      })
+      }),
+      ...mapActions([
+        'savePlayHistory'
+      ])
     },
     watch: {
       currentSong(newSong, oldSong) {

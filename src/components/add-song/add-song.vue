@@ -12,6 +12,18 @@
       </div>
       <div class="shortcut" v-show="!query">
         <switches ref="switches" :switches="switches" :currentIndex="currentIndex" @switche="switcheItem"></switches>
+        <div class="list-wrapper">
+          <scroll v-if="currentIndex===0" :data="playHistory" ref="songList" class="list-scroll">
+            <div class="list-inner">
+              <song-list :songs="playHistory" @select="selectSong"></song-list>
+            </div>
+          </scroll>
+          <scroll v-if="currentIndex===1" :data="searchHistory" ref="searchList" class="list-scroll">
+            <div class="list-inner">
+              <search-list @delete="deleteSearchHistory" @select="addQuery" :searches="searchHistory"></search-list>
+            </div>
+          </scroll>
+        </div>
       </div>
       <div class="search-result" v-show="query">
         <suggest @select="selectSuggest" :query="query" @listScroll="blurInput" ref="suggest"
@@ -27,10 +39,19 @@
   import Scroll from 'base/scroll/scroll'
   import {searchMixin} from 'common/js/mixin'
   import Switches from 'base/switches/switches'
+  import Song from 'common/js/song'
+  import {mapGetters, mapActions} from 'vuex'
+  import SongList from 'base/song-list/song-list'
+  import SearchList from 'base/search-list/search-list'
 
   export default {
     mixins: [searchMixin],
     name: 'add-song',
+    computed: {
+      ...mapGetters([
+        'playHistory'
+      ])
+    },
     data() {
       return {
         showFlag: false,
@@ -46,11 +67,20 @@
       SearchBox,
       Suggest,
       Scroll,
-      Switches
+      Switches,
+      SongList,
+      SearchList
     },
     methods: {
       show() {
         this.showFlag = true
+        setTimeout(() => {
+          if (this.currentIndex === 0) {
+            this.$refs.songList.refresh()
+          } else {
+            this.$refs.searchList.refresh()
+          }
+        }, 20)
       },
       hide() {
         this.showFlag = false
@@ -60,7 +90,15 @@
       },
       switcheItem(index) {
         this.currentIndex = index
-      }
+      },
+      selectSong(song, index) {
+        if (index !== 0) {
+          this.insertSong(new Song(song))
+        }
+      },
+      ...mapActions([
+        'insertSong'
+      ])
     }
   }
 </script>
