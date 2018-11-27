@@ -5,19 +5,19 @@
         <i class="icon-back"></i>
       </div>
       <div class="switches-wrapper">
-        <switches @switch="switchItem" :switches="switches" :currentIndex="currentIndex"></switches>
+        <switches @switche="switchItem" :switches="switches" :currentIndex="currentIndex"></switches>
       </div>
       <div ref="playBtn" class="play-btn" @click="random">
         <i class="icon-play"></i>
         <span class="text">随机播放全部</span>
       </div>
       <div class="list-wrapper" ref="listWrapper">
-        <scroll ref="favoriteList" class="list-scroll" v-if="currentIndex===0" :data="favoriteList">
+        <scroll ref="favoriteList" class="list-scroll" v-if="currentIndex === 0" :data="favoriteList">
           <div class="list-inner">
             <song-list :songs="favoriteList" @select="selectSong"></song-list>
           </div>
         </scroll>
-        <scroll ref="playList" class="list-scroll" v-if="currentIndex===1" :data="playHistory">
+        <scroll ref="playList" class="list-scroll" v-if="currentIndex === 1" :data="playHistory">
           <div class="list-inner">
             <song-list :songs="playHistory" @select="selectSong"></song-list>
           </div>
@@ -35,13 +35,14 @@
   import Scroll from 'base/scroll/scroll'
   import SongList from 'base/song-list/song-list'
   import NoResult from 'base/no-result/no-result'
+  import Song from 'common/js/song'
   import {mapGetters, mapActions} from 'vuex'
   import {playListMixin} from 'common/js/mixin'
   export default {
     mixins: [playListMixin],
     data() {
       return {
-        currentIndex: 0,
+        currentIndex: 1,
         switches: [
           {
             name: '我喜欢的'
@@ -81,9 +82,10 @@
       },
       switchItem(index) {
         this.currentIndex = index
+        console.log(this.playHistory)
       },
       selectSong(song) {
-        this.insertSong(song)
+        this.insertSong(new Song(song))
       },
       back() {
         this.$router.back()
@@ -93,6 +95,9 @@
         if (list.length === 0) {
           return
         }
+        list = list.map((song) => {
+          return new Song(song)
+        })
         this.randomPlay({
           list
         })
