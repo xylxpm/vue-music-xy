@@ -42,7 +42,7 @@
     mixins: [playListMixin],
     data() {
       return {
-        currentIndex: 1,
+        currentIndex: 0,
         switches: [
           {
             name: '我喜欢的'
