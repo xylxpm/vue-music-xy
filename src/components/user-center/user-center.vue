@@ -82,7 +82,6 @@
       },
       switchItem(index) {
         this.currentIndex = index
-        console.log(this.playHistory)
       },
       selectSong(song) {
         this.insertSong(new Song(song))

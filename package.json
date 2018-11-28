@@ -5,7 +5,7 @@
   "author": "xylxpm <bobo_xylxpm@163.com>",
   "private": true,
   "scripts": {
-    "dev": "webpack-dev-server --inline --progress --config build/webpack.dev.conf.js",
+    "dev": "webpack-dev-server --inline --progress --config build/webpack.dev.conf.js --host 0.0.0.0",
     "start": "npm run dev",
     "build": "node build/build.js",
     "lint": "eslint --ext .js,.vue src"
@@ -67,6 +67,7 @@
     "stylus-loader": "^3.0.2",
     "uglifyjs-webpack-plugin": "^1.1.1",
     "url-loader": "^0.5.8",
+    "vconsole": "^3.2.0",
     "vue-lazyload": "^1.2.6",
     "vue-loader": "^13.3.0",
     "vue-style-loader": "^3.0.1",
